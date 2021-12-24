@@ -1,0 +1,55 @@
+---
+# Server checking with ansible (Ubuntu servers)
+
+ - name: "Server configuration check"
+   hosts: localhost
+   connection: local
+
+   tasks:
+           - name: "test reachability"
+             ping:
+
+           - name: "Check Systems' OS"
+             debug:
+                     msg: "Domain Name: {{ansible_fqdn}}, OS = {{ansible_distribution}} {{ansible_distribution_version}} {{ansible_distribution_release}}"
+
+           - name: "check if setup file exists"
+             stat:
+                     path: "~/setup.sh"
+             register: f_exists
+
+           - name: "file exists output"
+             debug:
+                     msg: "On {{ansible_fqdn}}, file exists"
+             when: f_exists.stat.exists
+
+           - name: "file doesn't exist output"
+             debug:
+                     msg: "On {{ansible_fqdn}}, file doesn't exist"
+             when: not f_exists.stat.exists 
+
+           - name: "Check if keepalived is installed"
+             block:
+                     - name: "Keep alived installed"
+                       command: keepalived --version
+                       no_log: true
+                     - debug:
+                               msg: "keep alived installed on {{ansible_fqdn}}"
+             rescue:
+                     - name: "keep alived not installed"
+                       debug:
+                               msg: "keep alived is not installed on {{ansible_fqdn}}"
+             
+           - name: "check if mysql is installed"
+             block:
+                     - name: "mysql is installed"
+                       command: mysql --version
+                       no_log: true
+                     - debug:
+                               msg: "mysql is installed"
+             rescue:
+                     - name: "mysql is not installed on {{ansible_fqdn}}"
+                       debug:
+                               msg: "mysql not installed on {{ansible_fqdn}}"
+              
+                                 
